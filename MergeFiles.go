@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"strings"
+	"fmt"
 )
 
 func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]string, error) {
@@ -41,6 +42,8 @@ func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]stri
 
 	// Implementation
 
+	var conflicts []string
+
 	for i := 0; i <= length; i++ {
 
 		// if Line is the same as old version
@@ -48,7 +51,7 @@ func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]stri
 			(pastLines[i] == version2Lines[i] && version2Lines[i] == version1Lines[i]) {
 
 			if debug {
-				pastLines[i] = "OLD" + pastLines[i]
+				pastLines[i] = "0" + pastLines[i]
 			}
 
 			ml = append(ml, pastLines[i])
@@ -60,6 +63,8 @@ func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]stri
 
 				if i < len(bChunk) && !bChunk[i] {
 					// change in both / Conflict
+
+					conflicts = append(conflicts, fmt.Sprintf("Conflict in line %d \n File: %s%s", i, bd, v1))
 					ml = append(ml, []string{">>>>>>>>>> Version 2 (New)",
 						version2Lines[i],
 						"==========",
@@ -69,7 +74,7 @@ func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]stri
 					// only change in VER1
 
 					if debug {
-						version1Lines[i] = "VER1" + version1Lines[i]
+						version1Lines[i] = "1" + version1Lines[i]
 					}
 					ml = append(ml, version1Lines[i])
 				}
@@ -78,6 +83,7 @@ func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]stri
 				// change in B
 				if i < len(aChunk) && !aChunk[i] {
 					// change in both / Conflict
+					conflicts = append(conflicts, fmt.Sprintf("Conflict in line %d \n File: %s%s", i, bd, v2))
 					ml = append(ml, []string{">>>>>>>>>> Version 2 (New)",
 						version2Lines[i],
 						"==========",
@@ -86,7 +92,7 @@ func MergeFile(bd string, past string, v1 string, v2 string, debug bool) ([]stri
 				} else {
 					// only change in VER2
 					if debug {
-						version2Lines[i] = "VER2" + version2Lines[i]
+						version2Lines[i] = "2" + version2Lines[i]
 					}
 					ml = append(ml, version2Lines[i])
 				}

@@ -3,20 +3,21 @@ package main
 import (
 	"log"
 	"os"
-	"path/filepath"
 	"strings"
+	"CopyModels/Util"
+	"io/ioutil"
 )
 
 func MergeDir(path string, list []Model, debug bool) error {
 
 	for _, v := range list {
-		src, err := FilePathWalkDir(path + v.src)
+		src, err := Util.FilePathWalkDir(path + v.src)
 
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		dest, err := FilePathWalkDir(path + v.dest)
+		dest, err := Util.FilePathWalkDir(path + v.dest)
 
 		var oldFiles []string
 		var newFiles []string
@@ -26,44 +27,88 @@ func MergeDir(path string, list []Model, debug bool) error {
 		for _, f := range src {
 			l := strings.Split(f, v.src)
 
-			oldFiles = append(oldFiles, l[len(l)-1])
-
+			newFiles = append(newFiles, l[len(l)-1])
 		}
 
 		for _, f := range dest {
 			l := strings.Split(f, v.dest)
 
-			newFiles = append(newFiles, l[len(l)-1])
-		}
-
-		println("OLD")
-		for _, f := range oldFiles {
-			println(f)
-		}
-
-		println("NEW")
-		for _, f := range newFiles {
-			println(f)
+			oldFiles = append(oldFiles, l[len(l)-1])
 		}
 
 		// get classes in common
+		merge := Util.Common(newFiles, oldFiles)
+
+		for _, m := range merge {
+			file, err := MergeFile(path, v.past, v.src+m, v.dest+m, debug)
+			if err != nil {
+				return err
+			}
+
+			f, err := os.Create(path + v.dest + m)
+
+			f.Write([]byte(strings.Join(file, "\n")))
+			if err != nil {
+				return err
+			}
+
+			f.Close()
+
+			if err != nil {
+				return err
+			}
+
+		}
+
+		add := Util.Except(newFiles, oldFiles)
+		remove := Util.Except(oldFiles, newFiles)
 
 		// remove classes that are not in new
 
+		for _, r := range remove {
+			os.Remove(path + v.dest + r)
+			ok, err := Util.IsEmpty(path + v.dest)
+
+			if err != nil {
+				return err
+			}
+
+			if ok {
+				os.Remove(path + v.dest)
+			}
+		}
+
 		// add classes that are not in old
 
+		for _, a := range add {
+
+			dat, err := ioutil.ReadFile(path + v.src + a)
+
+			if err != nil {
+				return err
+			}
+
+			p := strings.Split(a, "/")
+
+			pa := path + v.dest + strings.Join(p[:len(p)-1], "/") + "/"
+
+			os.MkdirAll(pa, os.ModePerm)
+
+			f, err := os.Create(path + v.dest + a)
+
+			f.Write(dat)
+
+			if err != nil {
+				return err
+			}
+
+			f.Close()
+
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
-}
-
-func FilePathWalkDir(root string) ([]string, error) {
-	var files []string
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			files = append(files, path)
-		}
-		return nil
-	})
-	return files, err
 }

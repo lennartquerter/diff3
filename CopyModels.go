@@ -29,7 +29,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	path := "./"
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	path := dir
 	var models []Model
 
 	if BoCommand.Parsed() {
@@ -72,13 +77,13 @@ func main() {
 
 		models = []Model{
 			{
-				src:  "Dir1",
-				dest: "Dir2",
+				src:  "src",
+				dest: "dest",
 			},
 		}
 	}
 
-	err := MergeDir(path, models, true)
+	err = MergeDir(path, models, false)
 
 	if err != nil {
 		log.Fatal(err)
