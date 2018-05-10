@@ -1,4 +1,4 @@
-package Util
+package Helpers
 
 import (
 	"io/ioutil"
@@ -56,7 +56,6 @@ func Contains(list []string, item string) bool {
 	return false
 }
 
-
 func FilePathWalkDir(root string) ([]string, error) {
 	var files []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -82,3 +81,13 @@ func IsEmpty(name string) (bool, error) {
 	return false, err // Either not empty or error, suits both cases
 }
 
+func Max(list1 []bool, list2 []bool) (int) {
+	l := 0
+	for _, e := range []int{len(list1), len(list2)} {
+		if e > l {
+			l = e
+		}
+	}
+
+	return l
+}

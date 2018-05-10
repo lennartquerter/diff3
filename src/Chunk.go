@@ -1,4 +1,4 @@
-package main
+package src
 
 func getChunk(a []string, b []string) []bool {
 
@@ -11,7 +11,12 @@ func getChunk(a []string, b []string) []bool {
 	var match []bool
 
 	for i := range a {
-		match = append(match, a[i] == b[i])
+		if i < len(b) {
+			match = append(match, a[i] == b[i])
+		} else {
+			match = append(match, false)
+		}
+
 	}
 
 	return match

@@ -1,13 +1,15 @@
-package main
+package src
 
 import (
 	"flag"
 	"fmt"
 	"os"
 	"log"
+	. "CopyModels/src/exported"
+	"os/user"
 )
 
-func main() {
+func CopyModels() {
 	BoCommand := flag.NewFlagSet("bo", flag.ExitOnError)
 	PortCommand := flag.NewFlagSet("portal", flag.ExitOnError)
 	TestCommand := flag.NewFlagSet("test", flag.ExitOnError)
@@ -35,20 +37,20 @@ func main() {
 	}
 
 	path := dir
-	var models []Model
+	var models []Dir
 
 	if BoCommand.Parsed() {
 
 		path = "/Users/lennartquerter/Documents/go/src/innovam.nl/Applications/src/"
 
-		models = []Model{
+		models = []Dir{
 			{
-				src:  "Education/src/Innovam.Education.Api.Models",
-				dest: "Backoffice/src/Innovam.Education.Api.Models",
+				Source:      "Education/src/Innovam.Education.Api.exported",
+				Destination: "Backoffice/src/Innovam.Education.Api.exported",
 			},
 			{
-				src:  "Email/src/Innovam.Email.Api.Models",
-				dest: "Backoffice/src/Innovam.Email.Api.Models",
+				Source:      "Email/src/Innovam.Email.Api.exported",
+				Destination: "Backoffice/src/Innovam.Email.Api.exported",
 			},
 		}
 	}
@@ -56,34 +58,40 @@ func main() {
 	if PortCommand.Parsed() {
 		path = "/Users/lennartquerter/Documents/go/src/lenimal.nl/Applications/src/"
 
-		models = []Model{
+		models = []Dir{
 			{
-				src:  "Billing/src/Lenimal.Billing.Models",
-				dest: "Portal/src/Lenimal.Billing.Models",
+				Source:      "Billing/src/Lenimal.Billing.exported",
+				Destination: "Portal/src/Lenimal.Billing.exported",
 			},
 			{
-				src:  "Booking/src/Lenimal.Booking.Models",
-				dest: "Portal/src/Lenimal.Booking.Models",
+				Source:      "Booking/src/Lenimal.Booking.exported",
+				Destination: "Portal/src/Lenimal.Booking.exported",
 			},
 			{
-				src:  "Mail/src/Lenimal.Mail.Models",
-				dest: "Portal/src/Lenimal.Mail.Models",
+				Source:      "Mail/src/Lenimal.Mail.exported",
+				Destination: "Portal/src/Lenimal.Mail.exported",
 			},
 		}
 	}
 
 	if TestCommand.Parsed() {
-		path = "./Test/"
 
-		models = []Model{
+		models = []Dir{
 			{
-				src:  "src",
-				dest: "dest",
+				Source:      "/Test/src",
+				Destination: "/Test/dest",
 			},
 		}
 	}
 
-	err = MergeDir(path, models, false)
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	historyPath := usr.HomeDir + "/.go/copy_models"
+
+	err = MergeDir(path, models, historyPath, false)
 
 	if err != nil {
 		log.Fatal(err)
